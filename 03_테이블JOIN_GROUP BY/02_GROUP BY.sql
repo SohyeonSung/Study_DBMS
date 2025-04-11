@@ -100,5 +100,73 @@ WHERE C.CUSTID = O.CUSTID
 GROUP BY C.NAME
 ;
 
+--================================
+-- 필요시 조인(JOIN)과 GROUP BY ~ HAVING 구문을 사용해서 처리
+--1. 고객이 주문한 도서의 총판매건수, 판매액, 평균값, 최저가, 최고가 구하기
+--2. 고객별로 주문한 도서의 총수량, 총판매액 구하기
+--3. 고객의 이름과 고객이 주문한 도서의 판매가격을 검색
+--4. 고객별로 주문한 모든 도서의 총 판매액을 구하고, 고객명으로 정렬
+--5. 고객별로 주문한 건수, 합계금액, 평균금액을 구하고(3권 보다 적게 구입한 사람 검색)
+--(번외) 고객 중 한 권도 구입 안 한 사람은 누구??
+---------------------------
+
+--1. 고객이 주문한 도서의 총판매건수, 판매액, 평균값, 최저가, 최고가 구하기
+SELECT COUNT(O.ORDERID) AS 총판매건수,
+          SUM(O.SALEPRICE) AS 총판매액,
+          AVG(O.SALEPRICE) AS 평균값,
+          MIN(O.SALEPRICE) AS 최저가,
+          MAX(O.SALEPRICE) AS 최고가
+FROM ORDERS O
+;
+
+
+--2. 고객별로 주문한 도서의 총수량, 총판매액 구하기
+SELECT C.CUSTID, C.NAME, COUNT(*), SUM(O.SALEPRICE)
+FROM ORDERS O, CUSTOMER C
+WHERE O.CUSTID = C.CUSTID
+GROUP BY C.CUSTID, C.NAME
+;
+
+--3. 고객의 이름과 고객이 주문한 도서의 판매가격을 검색
+SELECT C.NAME, B.BOOKNAME, B.PRICE, O.SALEPRICE, o.orderdate
+FROM ORDERS O, CUSTOMER C, BOOK B
+WHERE O.CUSTID = C.CUSTID
+  AND O.BOOKID = B.BOOKID
+ORDER BY C.NAME, O.SALEPRICE
+;
+
+--4. 고객별로 주문한 모든 도서의 총 판매액을 구하고, 고객명으로 정렬
+SELECT C.CUSTID, C.NAME, SUM(O.SALEPRICE) AS SUM_PRICE
+FROM ORDERS O, CUSTOMER C
+WHERE O.CUSTID = C.CUSTID
+GROUP BY C.CUSTID, C.NAME
+ORDER BY C.NAME
+;
+
+--5. 고객별로 주문한 건수, 합계금액, 평균금액을 구하고(3권 보다 적게 구입한 사람 검색)
+SELECT C.CUSTID, C.NAME
+     , COUNT(*) AS CNT
+     , SUM(O.SALEPRICE) AS SUM_PRICE
+     , TRUNC(AVG(O.SALEPRICE)) AS AVG_PRICE
+FROM ORDERS O, CUSTOMER C
+WHERE O.CUSTID = C.CUSTID
+GROUP BY C.CUSTID, C.NAME
+HAVING COUNT(*) < 3
+;
+
+
+--(번외) 고객 중 한 권도 구입 안 한 사람은 누구?? -> 박세리
+SELECT C.NAME AS 이름
+FROM CUSTOMER C
+LEFT JOIN ORDERS O ON C.CUSTID = O.CUSTID
+WHERE O.ORDERID IS NULL
+;
+
+SELECT CUSTID FROM CUSTOMER ORDER BY CUSTID;
+SELECT DISTINCT CUSTID FROM ORDERS ORDER BY CUSTID;
+
+
+
+
 
 
